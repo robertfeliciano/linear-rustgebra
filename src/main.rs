@@ -51,4 +51,11 @@ fn main() {
     m6.rref();
     m6.print();
 
+    let mut m7 = Matrix::from_file("src/4b5.txt");
+    m7.print();
+    println!("{:?}", m7);
+    println!("Row Reduce Echelon Form calculation:");
+    m7.rref();
+    m7.print();
+
 }
