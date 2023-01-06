@@ -5,7 +5,7 @@ fn main() {
     m.identity();
 
     let mut mcpy = m.copy();
-    mcpy.map(|x| x+3.0);
+    mcpy.apply(|x| x+3.0);
     mcpy.print(); 
 
     m.print();
@@ -15,7 +15,7 @@ fn main() {
     println!("det(m1) = {}", m1.det());
 
     let mut m2 = Matrix::from_file("src/m1.txt");
-    m2.map(|i| i*2.0);
+    m2.apply(|i| i*2.0);
     m2.print();
     println!("det(m2) = {}", m2.det());
 
@@ -27,6 +27,10 @@ fn main() {
     m4.print();
     println!("det(m4) = {}", m4.det());
 
+    let m34 = m4.dot(m3);
+    println!("m4 dot m3:");
+    m34.print();
+
     let m4t = m4.transpose();
     m4t.print();
 
@@ -36,5 +40,15 @@ fn main() {
     let m5i = m5.inverse();
     println!("inverse of m5:");
     m5i.print();
+
+    // let mut m6 = Matrix::from_string("0 1 2 ; 0 3 1 ; 5 2 2");
+    let mut m6 = Matrix::from_string("5 -6 -7 7 ; 
+                                                    3 -2 5 -17 ;
+                                                    2 4 -3 29");
+    m6.print();
+    println!("Row Reduce Echelon Form calculation:");
+    // println!("{:?}", m6);
+    m6.rref();
+    m6.print();
 
 }
