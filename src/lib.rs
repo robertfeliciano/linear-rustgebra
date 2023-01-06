@@ -23,22 +23,19 @@ impl Matrix {
     pub fn from_file(path: &str) -> Matrix {
         let content = fs::read_to_string(path).unwrap_or_else(|e| panic!("{e}"));
         let mut matrix: Vec<Vec<f64>> = Vec::new();
-        let mut c: u32 = 0;
-        let mut r: u32 = 0;
         for rows in content.lines() {
-            r += 1;
             let mut row: Vec<f64> = Vec::new();
             let entries: Vec<&str> = rows
                                     .split_whitespace()
                                     .collect();
             for ent in entries {
-                if r == 1 {
-                    c += 1;
-                }
                 row.push(ent.parse::<f64>().unwrap());
             }
             matrix.push(row);
         }
+
+        let r = matrix.len() as u32;
+        let c = matrix[0].len() as u32;
         return Matrix { rows: r, cols: c, data: matrix };
     }
 
@@ -84,6 +81,13 @@ impl Matrix {
         println!();
     }
 
+    /** 
+     constructs an identiy matrix
+     # Examples
+     let mut id = Matrix::new(3,3);
+
+     id.identity();
+     */
     pub fn identity(&mut self) {
         if self.rows != self.cols {
             panic!("Not a square matrix.");
@@ -199,20 +203,7 @@ impl Matrix {
             }
             lead += 1;
         }
-
-        // correct negative zeroes and floating point approx (1.999999 = 2)
-        for row in 0..self.rows as usize{
-            for col in 0..self.cols as usize{
-                let elem = self.data[row][col];
-                if elem == -0.0{
-                    self.data[row][col] = 0.0;
-                }
-                let floored = elem.floor();
-                if elem - floored > 0.9999999999999{
-                    self.data[row][col] = elem.round();
-                }
-            }
-        }
+        correct(self);
 
     }
 
@@ -293,14 +284,7 @@ impl Matrix {
             }
         }
 
-        // need to fix negative zeroes. idek how that happens tbh
-        for row in 0..inv.rows as usize{
-            for col in 0..inv.cols as usize{
-                if inv.data[row][col] == -0.0{
-                    inv.data[row][col] = 0.0;
-                }
-            }
-        }
+        correct(&mut inv);
 
         inv = inv.transpose();
         let d = self.det();
@@ -314,6 +298,9 @@ impl Matrix {
     
 }
 
+/**
+ finds a row with a 1 column and swaps it with the indicated one
+ */
 fn swap_rows(m: &mut Matrix, row: usize) {
     let mut n_r = 0;
     for r in 0..m.rows as usize{
@@ -325,4 +312,22 @@ fn swap_rows(m: &mut Matrix, row: usize) {
     let temp: Vec<f64> = m.data[row].clone();
     m.data[row] = m.data[n_r].clone();
     m.data[n_r] = temp;
+}
+
+/**
+correct negative "zeroes" and floating point approx (1.999999 = 2)
+*/
+fn correct(m: &mut Matrix) {
+    for row in 0..m.rows as usize{
+        for col in 0..m.cols as usize{
+            let elem = m.data[row][col];
+            if elem == -0.0{
+                m.data[row][col] = 0.0;
+            }
+            let floored = elem.floor();
+            if elem - floored > 0.9999999999999{
+                m.data[row][col] = elem.round();
+            }
+        }
+    }
 }
