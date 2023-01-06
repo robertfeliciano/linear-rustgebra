@@ -325,8 +325,11 @@ fn correct(m: &mut Matrix) {
                 m.data[row][col] = 0.0;
             }
             let floored = elem.floor();
-            if elem - floored > 0.9999999999999{
+            if elem - floored > 0.9999999{
                 m.data[row][col] = elem.round();
+            }
+            if elem < 0.000001 {
+                m.data[row][col] = 0.0;
             }
         }
     }
