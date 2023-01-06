@@ -110,11 +110,21 @@ impl Matrix {
      * applies a function over all elements in the matrix
      */
     pub fn apply(&mut self, f: impl Fn(f64) -> f64) {
-        for row in 0..self.rows {
-            for col in 0..self.cols {
-                self.data[row as usize][col as usize] = f(self.data[row as usize][col as usize]);
-            }
-        }   
+        // for row in 0..self.rows {
+        //     for col in 0..self.cols {
+        //         self.data[row as usize][col as usize] = f(self.data[row as usize][col as usize]);
+        //     }
+        // }
+        // for r in 0..self.rows as usize{
+        //     self.data[r] = self.data[r].iter().map(|x| f(*x)).collect::<Vec<f64>>();
+        // }
+        self.data = self.data.iter()
+                            .map(|v| {
+                                    v.iter()
+                                    .map(|x| f(*x))
+                                    .collect()
+                            })
+                            .collect();
     }
 
     /**
