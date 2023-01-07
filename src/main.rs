@@ -31,7 +31,10 @@ fn main() {
     println!("m4 dot m3:");
     m34.print();
 
-    let m4t = m4.transpose();
+    let mut m4t = m4.transpose();
+    println!("testing apply");
+    m4t.print();
+    m4t.apply(|x| x+99.0);
     m4t.print();
 
     let m5 = Matrix::from_string("3 0 2 ; 2 0 -2 ; 0 1 1 ");
@@ -58,4 +61,5 @@ fn main() {
     m7.rref();
     m7.print();
 
+    
 }

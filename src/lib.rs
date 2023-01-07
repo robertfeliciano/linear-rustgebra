@@ -2,13 +2,13 @@ use std::fs;
 
 #[derive(Debug)]
 pub struct Matrix {
-    pub rows: u32,
-    pub cols: u32,
+    pub rows: usize,
+    pub cols: usize,
     pub data: Vec<Vec<f64>>,
 }
 
 impl Matrix {
-    pub fn new(rows: u32, cols: u32) -> Matrix {
+    pub fn new(rows: usize, cols: usize) -> Matrix {
         let data = vec![vec![0.0; cols as usize]; rows as usize];
         return Matrix { rows, cols, data };
     }
@@ -34,8 +34,8 @@ impl Matrix {
             matrix.push(row);
         }
 
-        let r = matrix.len() as u32;
-        let c = matrix[0].len() as u32;
+        let r = matrix.len();
+        let c = matrix[0].len();
         return Matrix { rows: r, cols: c, data: matrix };
     }
 
@@ -55,8 +55,8 @@ impl Matrix {
             }
             data.push(tmp_row);
         }
-        let n_r = data.len() as u32;
-        let n_c = data[0].len() as u32;
+        let n_r = data.len();
+        let n_c = data[0].len();
         return Matrix { rows: n_r, cols: n_c, data };
     }
 
@@ -75,9 +75,7 @@ impl Matrix {
      * prints a matrix
      */
     pub fn print(&self) {
-        for row in &self.data {
-            println!("{:?}", row);
-        }
+        self.data.iter().for_each(|v| println!("{:?}", v));
         println!();
     }
 
@@ -92,17 +90,8 @@ impl Matrix {
         if self.rows != self.cols {
             panic!("Not a square matrix.");
         }
-        let mut r: u32 = 0;
-        while r < self.rows {
-            for c in 0..self.cols{
-                if r == c{
-                    self.data[r as usize][c as usize] = 1.0;
-                }
-                else {
-                    self.data[r as usize][c as usize] = 0.0;
-                }
-            }
-            r += 1;
+        for r in 0..self.rows as usize{
+            self.data[r][r] = 1.0;
         }
     }
 
@@ -220,31 +209,27 @@ impl Matrix {
     /**
      * computes the cofactor of a matrix by expanding upon row "expanded_row"
      */
-    pub fn cofactor(&self, expanded_row: u32, j: u32) -> f64 {
+    pub fn cofactor(&self, expanded_row: usize, j: usize) -> f64 {
         let mut cut: Vec<Vec<f64>> = Vec::new();
-        let mut n_r = 0;
-        let mut n_c = 0;
 
         for r in 0..self.rows {
             if r == expanded_row {
                 continue;
             }
-            n_c = 0;
             let mut v: Vec<f64> = Vec::new();
             for c in 0..self.cols {
                 if c == j {
                     continue;
                 }
                 v.push(self.data[r as usize][c as usize]);
-                n_c += 1;
             }
             cut.push(v);
-            n_r += 1;
         }
-
+        let n_r = cut.len();
+        let n_c = cut[0].len();
         let minor = Matrix { rows: n_r, cols: n_c, data: cut }.det();
         let base: i32 = -1;
-        return minor * f64::from(base.pow(expanded_row + j));
+        return minor * f64::from(base.pow((expanded_row + j) as u32));
     }
 
     /**
@@ -260,11 +245,11 @@ impl Matrix {
         else {
             // matrix is more than 2x2
             // we will just always expand upon row 2 (technically row 1 since the vector is 0-indexed)
-            let row: u32 = 1;
+            let row: usize = 1;
             let mut det = 0.0;
 
-            for j in 0..self.data[row as usize].len(){
-                det += self.cofactor(row, j as u32) * self.data[row as usize][j];
+            for j in 0..self.data[row].len(){
+                det += self.cofactor(row, j) * self.data[row][j];
             }
             return det;
         }
@@ -276,8 +261,8 @@ impl Matrix {
     pub fn transpose(&self) -> Matrix {
         let mut t = Matrix::new(self.cols, self.rows);
 
-        for i in 0..self.rows as usize{
-            for j in 0..self.cols as usize{
+        for i in 0..self.rows{
+            for j in 0..self.cols{
                 t.data[j][i] = self.data[i][j];
             }
         }
@@ -288,9 +273,9 @@ impl Matrix {
     pub fn inverse(&self) -> Matrix {
         let mut inv = Matrix::new(self.rows, self.cols);
 
-        for row in 0..self.rows as usize{
-            for col in 0..self.cols as usize{
-                inv.data[row][col] = self.cofactor(row as u32, col as u32);
+        for row in 0..self.rows{
+            for col in 0..self.cols{
+                inv.data[row][col] = self.cofactor(row, col);
             }
         }
 
@@ -338,7 +323,10 @@ fn correct(m: &mut Matrix) {
             if elem - floored > 0.9999999{
                 m.data[row][col] = elem.round();
             }
-            if elem < 0.000001 {
+            if elem > 0.0 && elem < 0.000001 {
+                m.data[row][col] = 0.0;
+            }
+            if elem < 0.0 && elem > -0.000001 {
                 m.data[row][col] = 0.0;
             }
         }
