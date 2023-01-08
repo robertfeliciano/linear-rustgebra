@@ -1,5 +1,4 @@
 use std::fs;
-
 #[derive(Debug)]
 pub struct Matrix {
     pub rows: usize,
@@ -9,31 +8,23 @@ pub struct Matrix {
 
 impl Matrix {
     pub fn new(rows: usize, cols: usize) -> Matrix {
-        let data = vec![vec![0.0; cols as usize]; rows as usize];
+        let data = vec![vec![0.0; cols]; rows];
         return Matrix { rows, cols, data };
     }
 
-    /** 
-     * constructs a matrix from a file
-     * example file: 
-     * 1.0 0.2 2.0
-     * 3.0 4.5 1.2
-     * 9.8 3.3 1.4
-     */
     pub fn from_file(path: &str) -> Matrix {
         let content = fs::read_to_string(path).unwrap_or_else(|e| panic!("{e}"));
         let mut matrix: Vec<Vec<f64>> = Vec::new();
         for rows in content.lines() {
             let mut row: Vec<f64> = Vec::new();
             let entries: Vec<&str> = rows
-                                    .split_whitespace()
-                                    .collect();
+                                        .split_whitespace()
+                                        .collect();
             for ent in entries {
                 row.push(ent.parse::<f64>().unwrap());
             }
             matrix.push(row);
         }
-
         let r = matrix.len();
         let c = matrix[0].len();
         return Matrix { rows: r, cols: c, data: matrix };
@@ -42,13 +33,12 @@ impl Matrix {
     pub fn from_string(input: &str) -> Matrix {
         let mut data: Vec<Vec<f64>> = Vec::new();
         let rows: Vec<&str> = input
-                              .split(";")
-                              .collect();
-
+                                .split(";")
+                                .collect();
         for row in rows {
             let entries: Vec<&str> = row
-                                    .split_whitespace()
-                                    .collect();
+                                        .split_whitespace()
+                                        .collect();
             let mut tmp_row: Vec<f64> = Vec::new();
             for ent in entries {
                 tmp_row.push(ent.parse::<f64>().unwrap());
@@ -60,110 +50,73 @@ impl Matrix {
         return Matrix { rows: n_r, cols: n_c, data };
     }
 
-    /**
-     * returns a deep copy of the matrix
-     */
     pub fn copy(&self) -> Matrix {
-        let mut matrix: Vec<Vec<f64>> = Vec::new();
+        let mut data: Vec<Vec<f64>> = Vec::new();
         for row in &self.data {
-            matrix.push(row.to_vec());
+            data.push(row.to_vec());
         }
-        return Matrix { rows: self.rows, cols: self.cols, data: matrix } ;
+        return Matrix { rows : self.rows, cols: self.cols, data };
     }
 
-    /** 
-     * prints a matrix
-     */
     pub fn print(&self) {
         self.data.iter().for_each(|v| println!("{:?}", v));
         println!();
     }
 
-    /** 
-     constructs an identiy matrix
-     # Examples
-     let mut id = Matrix::new(3,3);
-
-     id.identity();
-     */
     pub fn identity(&mut self) {
         if self.rows != self.cols {
             panic!("Not a square matrix.");
         }
-        for r in 0..self.rows as usize{
+        for r in 0..self.rows {
             self.data[r][r] = 1.0;
         }
     }
 
-    /**
-     * applies a function over all elements in the matrix
-     */
     pub fn apply(&mut self, f: impl Fn(f64) -> f64) {
-        // for row in 0..self.rows {
-        //     for col in 0..self.cols {
-        //         self.data[row as usize][col as usize] = f(self.data[row as usize][col as usize]);
-        //     }
-        // }
-        // for r in 0..self.rows as usize{
-        //     self.data[r] = self.data[r].iter().map(|x| f(*x)).collect::<Vec<f64>>();
-        // }
         self.data = self.data.iter()
                             .map(|v| {
-                                    v.iter()
-                                    .map(|x| f(*x))
-                                    .collect()
+                                v.iter()
+                                .map(|x| f(*x))
+                                .collect()
                             })
                             .collect();
     }
 
-    /**
-     * adds two matrices and returns the sum
-     */
     pub fn add(&self, b: Matrix) -> Matrix {
         if self.rows != b.rows || self.cols != b.cols {
-            panic!("Matrices must be of the same size.");
+            panic!("Matrices must be of the same size");
         }
         let mut sum = Matrix::new(self.rows, self.cols);
-        for i in 0..self.rows as usize{
-            for j in 0..self.cols as usize{
+        for i in 0..self.rows {
+            for j in 0..self.cols {
                 sum.data[i][j] = self.data[i][j] + b.data[i][j];
             }
         }
-
         return sum;
     }
 
-    /**
-     * subtracts two matrices and returns the difference
-     */
     pub fn subtract(&self, b: Matrix) -> Matrix {
-        if self.rows != b.rows ||  self.cols != b.cols {
-            panic!("Matrices must be of the same size.");
+        if self.rows != b.rows || self.cols != b.cols {
+            panic!("Matrices must be of the same size");
         }
         let mut diff = Matrix::new(self.rows, self.cols);
-        for i in 0..self.rows as usize{
-            for j in 0..self.cols as usize{
+        for i in 0..self.rows {
+            for j in 0..self.cols {
                 diff.data[i][j] = self.data[i][j] - b.data[i][j];
             }
         }
-
         return diff;
     }
 
-    /**
-     * computes the dot product of two matrices
-     # Examples
-     a.dot(b) computes a dot b
-     */
     pub fn dot(&self, b: Matrix) -> Matrix {
         if self.rows != b.cols || self.cols != b.rows {
-            panic!("Dimensions not matched. M1 is {} by {}, M2 is {} by {}", self.rows, self.cols, b.rows, b.cols);
+            panic!("Dimensions not matched. M1 is {} by {}, M2 is {} by {}.", self.rows, self.cols, b.rows, b.cols);
         }
         let mut dp = Matrix::new(self.rows, b.cols);
-        for i in 0..self.rows as usize {
-            for j in 0..b.cols as usize {
+        for i in 0..self.rows {
+            for j in 0..b.cols {
                 let mut sum = 0.0;
-                for k in 0..b.rows as usize {
+                for k in 0..b.rows {
                     sum += self.data[i][k] * b.data[k][j];
                 }
                 dp.data[i][j] = sum;
@@ -172,46 +125,36 @@ impl Matrix {
         return dp;
     }
 
-    /**
-     * computes the Row-Reduced Echelon Form of the matrix
-     */
     pub fn rref(&mut self) {
         if self.data[0][0] == 0.0 {
             swap_rows(self, 0);
         }
         let mut lead: usize = 0;
-        let rows = self.rows as usize;
+        let rows = self.rows;
         while lead < rows {
-            for r in 0..rows{
+            for r in 0..rows {
                 let div = self.data[lead][lead];
-
                 let mult = self.data[r][lead] / div;
 
                 if r == lead {
-                    //we are at the pivot's row so we need to make it equal to one
                     self.data[lead] = self.data[lead]
                                         .iter()
                                         .map(|entry| entry / div)
                                         .collect();
                 }
                 else {
-                    for c in 0..self.cols as usize {
-                        self.data[r][c] -= self.data[lead][c]*mult;
+                    for c in 0..self.cols {
+                        self.data[r][c] -= self.data[lead][c] * mult;
                     }
                 }
             }
             lead += 1;
         }
         correct(self);
-
     }
 
-    /**
-     * computes the cofactor of a matrix by expanding upon row "expanded_row"
-     */
     pub fn cofactor(&self, expanded_row: usize, j: usize) -> f64 {
         let mut cut: Vec<Vec<f64>> = Vec::new();
-
         for r in 0..self.rows {
             if r == expanded_row {
                 continue;
@@ -221,60 +164,55 @@ impl Matrix {
                 if c == j {
                     continue;
                 }
-                v.push(self.data[r as usize][c as usize]);
+                v.push(self.data[r][c]);
             }
             cut.push(v);
         }
         let n_r = cut.len();
         let n_c = cut[0].len();
-        let minor = Matrix { rows: n_r, cols: n_c, data: cut }.det();
+        let minor = Matrix { rows : n_r, cols: n_c, data: cut }.det();
         let base: i32 = -1;
         return minor * f64::from(base.pow((expanded_row + j) as u32));
     }
 
-    /**
-     *  computes the determinant of a matrix 
-     */
     pub fn det(&self) -> f64 {
         if self.rows != self.cols {
-            panic!("Determinant requires matrix to be a square matrix. Input matrix was {:?}.", self);
+            panic!("Determinant requires matrix to be a square. Input matrix was {:?}.", self);
         }
         if self.rows == 2 && self.cols == 2 {
             return self.data[0][0]*self.data[1][1] - self.data[0][1]*self.data[1][0];
         }
         else {
-            // matrix is more than 2x2
-            // we will just always expand upon row 2 (technically row 1 since the vector is 0-indexed)
             let row: usize = 1;
             let mut det = 0.0;
 
-            for j in 0..self.data[row].len(){
+            for j in 0..self.data[row].len() {
                 det += self.cofactor(row, j) * self.data[row][j];
             }
             return det;
         }
     }
 
-    /**
-     * computes the transpose of a matrix
-     */
     pub fn transpose(&self) -> Matrix {
         let mut t = Matrix::new(self.cols, self.rows);
-
-        for i in 0..self.rows{
-            for j in 0..self.cols{
+        for i in 0..self.rows {
+            for j in 0..self.cols {
                 t.data[j][i] = self.data[i][j];
             }
         }
-
         return t;
     }
 
     pub fn inverse(&self) -> Matrix {
+        let d = self.det();
+        if d == 0.0 {
+            panic!("Determinant is 0. No inverse.");
+        }
+
         let mut inv = Matrix::new(self.rows, self.cols);
 
-        for row in 0..self.rows{
-            for col in 0..self.cols{
+        for row in 0..self.rows {
+            for col in 0..self.cols {
                 inv.data[row][col] = self.cofactor(row, col);
             }
         }
@@ -282,23 +220,15 @@ impl Matrix {
         correct(&mut inv);
 
         inv = inv.transpose();
-        let d = self.det();
-        if d == 0.0 {
-            panic!("Determinant is 0. No inverse.");
-        }
         inv.apply(|x| x / d);
         return inv;
     }
 
-    
 }
 
-/**
- finds a row with a 1 column and swaps it with the indicated one
- */
-fn swap_rows(m: &mut Matrix, row: usize) {
+fn swap_rows(m: &mut Matrix, row: usize){
     let mut n_r = 0;
-    for r in 0..m.rows as usize{
+    for r in 0..m.rows {
         if m.data[r][0] > 0.0 {
             n_r = r;
             break;
@@ -309,24 +239,21 @@ fn swap_rows(m: &mut Matrix, row: usize) {
     m.data[n_r] = temp;
 }
 
-/**
-correct negative "zeroes" and floating point approx (1.999999 = 2)
-*/
 fn correct(m: &mut Matrix) {
-    for row in 0..m.rows as usize{
-        for col in 0..m.cols as usize{
+    for row in 0..m.rows {
+        for col in 0..m.cols {
             let elem = m.data[row][col];
-            if elem == -0.0{
+            if elem == -0.0 {
                 m.data[row][col] = 0.0;
             }
             let floored = elem.floor();
-            if elem - floored > 0.9999999{
+            if elem - floored > 0.9999999 {
                 m.data[row][col] = elem.round();
             }
             if elem > 0.0 && elem < 0.000001 {
                 m.data[row][col] = 0.0;
             }
-            if elem < 0.0 && elem > -0.000001 {
+            if elem < 0.0 && elem > -0.00001 {
                 m.data[row][col] = 0.0;
             }
         }
