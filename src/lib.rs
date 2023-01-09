@@ -1,4 +1,5 @@
 use std::fs;
+
 #[derive(Debug)]
 pub struct Matrix {
     pub rows: usize,
@@ -20,9 +21,7 @@ impl Matrix {
             let entries: Vec<&str> = rows
                                         .split_whitespace()
                                         .collect();
-            // for ent in entries {
-            //     row.push(ent.parse::<f64>().unwrap());
-            // }
+            
             entries.iter().for_each(|ent| row.push(ent.parse::<f64>().unwrap()));
 
             matrix.push(row);
@@ -42,9 +41,6 @@ impl Matrix {
                                         .split_whitespace()
                                         .collect();
             let mut tmp_row: Vec<f64> = Vec::new();
-            // for ent in entries {
-            //     tmp_row.push(ent.parse::<f64>().unwrap());
-            // }
 
             entries.iter().for_each(|ent| tmp_row.push(ent.parse::<f64>().unwrap()));
 
@@ -59,9 +55,7 @@ impl Matrix {
 
     pub fn copy(&self) -> Matrix {
         let mut n_data: Vec<Vec<f64>> = Vec::new();
-        // for row in &self.data {
-        //     n_data.push(row.to_vec());
-        // }
+        
         self.data.iter().for_each(|row| n_data.push(row.to_vec()));
 
         return Matrix { rows : self.rows, cols: self.cols, data: n_data };
@@ -91,55 +85,18 @@ impl Matrix {
                             .collect();
     }
 
-    pub fn add(&self, b: Matrix) -> Matrix {
-        if self.rows != b.rows || self.cols != b.cols {
-            panic!("Matrices must be of the same size");
-        }
-        let mut sum = Matrix::new(self.rows, self.cols);
-        for i in 0..self.rows {
-            for j in 0..self.cols {
-                sum.data[i][j] = self.data[i][j] + b.data[i][j];
-            }
-        }
-        return sum;
-    }
-
-    pub fn subtract(&self, b: Matrix) -> Matrix {
-        if self.rows != b.rows || self.cols != b.cols {
-            panic!("Matrices must be of the same size");
-        }
-        let mut diff = Matrix::new(self.rows, self.cols);
-        for i in 0..self.rows {
-            for j in 0..self.cols {
-                diff.data[i][j] = self.data[i][j] - b.data[i][j];
-            }
-        }
-        return diff;
-    }
-
-    pub fn mult(&self, b: Matrix) -> Matrix {
-        if self.rows != b.rows || self.cols != b.cols {
-            panic!("Matrices must be of the same size");
-        }
-        let mut prod = Matrix::new(self.rows, self.cols);
-
-        for r in 0..self.rows {
-            prod.data[r] = self.data[r].iter().zip(b.data[r].iter()).map(|(a,b)| a*b).collect();
-        }
-        return prod;
-    }
-
     pub fn combine(&self, b: Matrix, f: impl Fn(f64, f64) -> f64) -> Matrix {
         if self.rows != b.rows || self.cols != b.cols {
             panic!("Matrices must be of the same size");
         }
         let mut new_matrix = Matrix::new(self.rows, self.cols);
-
         for r in 0..self.rows {
-            new_matrix.data[r] = self.data[r].iter().zip(b.data[r].iter()).map(|(a,b)| f(*a,*b)).collect();
+            new_matrix.data[r] =
+                self.data[r].iter().zip(b.data[r].iter()).map(|(a,b)| f(*a,*b)).collect();
         }
         return new_matrix;
     }
+
 
     pub fn dot(&self, b: Matrix) -> Matrix {
         if self.rows != b.cols || self.cols != b.rows {
