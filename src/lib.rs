@@ -8,12 +8,15 @@ pub struct Matrix {
 }
 
 impl Matrix {
-    pub fn new(rows: usize, cols: usize) -> Matrix {
-        let data = vec![vec![0.0; cols]; rows];
-        Matrix { rows, cols, data }
+    pub fn new(rows: usize, cols: usize) -> Self {
+        Self {
+            rows,
+            cols,
+            data: vec![vec![0.0; cols]; rows],
+        }
     }
 
-    pub fn from_file(path: &str) -> Matrix {
+    pub fn from_file(path: &str) -> Self {
         let content = fs::read_to_string(path).unwrap_or_else(|e| panic!("{e}"));
         let mut matrix: Vec<Vec<f64>> = Vec::new();
         for rows in content.lines() {
@@ -26,16 +29,15 @@ impl Matrix {
 
             matrix.push(row);
         }
-        let r = matrix.len();
-        let c = matrix[0].len();
-        Matrix {
-            rows: r,
-            cols: c,
+
+        Self {
+            rows: matrix.len(),
+            cols: matrix[0].len(),
             data: matrix,
         }
     }
 
-    pub fn from_string(input: &str) -> Matrix {
+    pub fn from_string(input: &str) -> Self {
         let mut data: Vec<Vec<f64>> = Vec::new();
         let rows: Vec<&str> = input.split(';').collect();
         for row in rows {
@@ -51,19 +53,19 @@ impl Matrix {
 
         let n_r = data.len();
         let n_c = data[0].len();
-        Matrix {
+        Self {
             rows: n_r,
             cols: n_c,
             data,
         }
     }
 
-    pub fn copy(&self) -> Matrix {
+    pub fn copy(&self) -> Self {
         let mut n_data: Vec<Vec<f64>> = Vec::new();
 
         self.data.iter().for_each(|row| n_data.push(row.to_vec()));
 
-        Matrix {
+        Self {
             rows: self.rows,
             cols: self.cols,
             data: n_data,
@@ -92,11 +94,11 @@ impl Matrix {
             .collect();
     }
 
-    pub fn combine(&self, b: Matrix, f: impl Fn(f64, f64) -> f64) -> Matrix {
+    pub fn combine(&self, b: Self, f: impl Fn(f64, f64) -> f64) -> Self {
         if self.rows != b.rows || self.cols != b.cols {
             panic!("Matrices must be of the same size");
         }
-        let mut new_matrix = Matrix::new(self.rows, self.cols);
+        let mut new_matrix = Self::new(self.rows, self.cols);
         for r in 0..self.rows {
             new_matrix.data[r] = self.data[r]
                 .iter()
@@ -107,14 +109,14 @@ impl Matrix {
         new_matrix
     }
 
-    pub fn dot(&self, b: Matrix) -> Matrix {
+    pub fn dot(&self, b: Self) -> Self {
         if self.rows != b.cols || self.cols != b.rows {
             panic!(
                 "Dimensions not matched. M1 is {} by {}, M2 is {} by {}.",
                 self.rows, self.cols, b.rows, b.cols
             );
         }
-        let mut dp = Matrix::new(self.rows, b.cols);
+        let mut dp = Self::new(self.rows, b.cols);
         for i in 0..self.rows {
             for j in 0..b.cols {
                 let mut sum = 0.0;
@@ -168,7 +170,7 @@ impl Matrix {
         }
         let n_r = cut.len();
         let n_c = cut[0].len();
-        let minor = Matrix {
+        let minor = Self {
             rows: n_r,
             cols: n_c,
             data: cut,
@@ -198,8 +200,8 @@ impl Matrix {
         }
     }
 
-    pub fn transpose(&self) -> Matrix {
-        let mut t = Matrix::new(self.cols, self.rows);
+    pub fn transpose(&self) -> Self {
+        let mut t = Self::new(self.cols, self.rows);
         for i in 0..self.rows {
             for j in 0..self.cols {
                 t.data[j][i] = self.data[i][j];
@@ -208,13 +210,13 @@ impl Matrix {
         t
     }
 
-    pub fn inverse(&self) -> Matrix {
+    pub fn inverse(&self) -> Self {
         let d = self.det();
         if d == 0.0 {
             panic!("Determinant is 0. No inverse.");
         }
 
-        let mut inv = Matrix::new(self.rows, self.cols);
+        let mut inv = Self::new(self.rows, self.cols);
 
         for row in 0..self.rows {
             for col in 0..self.cols {
