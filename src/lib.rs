@@ -10,7 +10,7 @@ pub struct Matrix {
 impl Matrix {
     pub fn new(rows: usize, cols: usize) -> Matrix {
         let data = vec![vec![0.0; cols]; rows];
-        return Matrix { rows, cols, data };
+        Matrix { rows, cols, data }
     }
 
     pub fn from_file(path: &str) -> Matrix {
@@ -28,16 +28,16 @@ impl Matrix {
         }
         let r = matrix.len();
         let c = matrix[0].len();
-        return Matrix {
+        Matrix {
             rows: r,
             cols: c,
             data: matrix,
-        };
+        }
     }
 
     pub fn from_string(input: &str) -> Matrix {
         let mut data: Vec<Vec<f64>> = Vec::new();
-        let rows: Vec<&str> = input.split(";").collect();
+        let rows: Vec<&str> = input.split(';').collect();
         for row in rows {
             let entries: Vec<&str> = row.split_whitespace().collect();
             let mut tmp_row: Vec<f64> = Vec::new();
@@ -51,11 +51,11 @@ impl Matrix {
 
         let n_r = data.len();
         let n_c = data[0].len();
-        return Matrix {
+        Matrix {
             rows: n_r,
             cols: n_c,
             data,
-        };
+        }
     }
 
     pub fn copy(&self) -> Matrix {
@@ -63,11 +63,11 @@ impl Matrix {
 
         self.data.iter().for_each(|row| n_data.push(row.to_vec()));
 
-        return Matrix {
+        Matrix {
             rows: self.rows,
             cols: self.cols,
             data: n_data,
-        };
+        }
     }
 
     pub fn print(&self) {
@@ -104,7 +104,7 @@ impl Matrix {
                 .map(|(a, b)| f(*a, *b))
                 .collect();
         }
-        return new_matrix;
+        new_matrix
     }
 
     pub fn dot(&self, b: Matrix) -> Matrix {
@@ -124,7 +124,7 @@ impl Matrix {
                 dp.data[i][j] = sum;
             }
         }
-        return dp;
+        dp
     }
 
     pub fn rref(&mut self) {
@@ -175,7 +175,7 @@ impl Matrix {
         }
         .det();
         let base: i32 = -1;
-        return minor * f64::from(base.pow((expanded_row + j) as u32));
+        minor * f64::from(base.pow((expanded_row + j) as u32))
     }
 
     pub fn det(&self) -> f64 {
@@ -186,7 +186,7 @@ impl Matrix {
             );
         }
         if self.rows == 2 && self.cols == 2 {
-            return self.data[0][0] * self.data[1][1] - self.data[0][1] * self.data[1][0];
+            self.data[0][0] * self.data[1][1] - self.data[0][1] * self.data[1][0]
         } else {
             let row: usize = 1;
             let mut det = 0.0;
@@ -194,7 +194,7 @@ impl Matrix {
             for j in 0..self.data[row].len() {
                 det += self.cofactor(row, j) * self.data[row][j];
             }
-            return det;
+            det
         }
     }
 
@@ -205,7 +205,7 @@ impl Matrix {
                 t.data[j][i] = self.data[i][j];
             }
         }
-        return t;
+        t
     }
 
     pub fn inverse(&self) -> Matrix {
@@ -226,7 +226,7 @@ impl Matrix {
 
         inv = inv.transpose();
         inv.apply(|x| x / d);
-        return inv;
+        inv
     }
 }
 
