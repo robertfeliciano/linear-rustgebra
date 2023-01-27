@@ -1,6 +1,6 @@
 use std::fs;
 
-#[derive(Debug)]
+#[derive(Debug, PartialEq)]
 pub struct Matrix {
     pub rows: usize,
     pub cols: usize,
@@ -263,5 +263,23 @@ fn correct(m: &mut Matrix) {
                 m.data[row][col] = 0.0;
             }
         }
+    }
+}
+
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_from_string() {
+        let m = Matrix::from_string("1 2 3 ; 4 5 6");
+        let expected = Matrix {
+            rows: 2,
+            cols: 3,
+            data: vec![vec![1.0, 2.0, 3.0], vec![4.0, 5.0, 6.0]],
+        };
+
+        assert!(m == expected);
     }
 }
