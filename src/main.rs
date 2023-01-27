@@ -1,12 +1,11 @@
 use linalg::Matrix;
 
 fn main() {
-
     let m1 = Matrix::from_string("1 2 3 ; 4 5 6");
     m1.print();
     let m2 = Matrix::from_string("7 8 9; 10 11 12");
     m2.print();
-    let m3 = m1.combine(m2, |a,b| (a*b));
+    let m3 = m1.combine(m2, |a, b| (a * b));
     m3.print();
 
     // let mut m: Matrix = Matrix::new(3,3);
@@ -14,7 +13,7 @@ fn main() {
 
     // let mut mcpy = m.copy();
     // mcpy.apply(|x| x+3.0);
-    // mcpy.print(); 
+    // mcpy.print();
 
     // m.print();
 
@@ -53,7 +52,7 @@ fn main() {
     // m5i.print();
 
     // // let mut m6 = Matrix::from_string("0 1 2 ; 0 3 1 ; 5 2 2");
-    // let mut m6 = Matrix::from_string("5 -6 -7 7 ; 
+    // let mut m6 = Matrix::from_string("5 -6 -7 7 ;
     //                                                 3 -2 5 -17 ;
     //                                                 2 4 -3 29");
     // m6.print();
@@ -68,6 +67,4 @@ fn main() {
     // println!("Row Reduce Echelon Form calculation:");
     // m7.rref();
     // m7.print();
-
-    
 }
