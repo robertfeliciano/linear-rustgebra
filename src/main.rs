@@ -2,11 +2,11 @@ use linalg::Matrix;
 
 fn main() {
     let m1 = Matrix::from_string("1 2 3 ; 4 5 6");
-    m1.print();
+    println!("{m1}");
     let m2 = Matrix::from_string("7 8 9; 10 11 12");
-    m2.print();
+    println!("{m2}");
     let m3 = m1.combine(m2, |a, b| (a * b));
-    m3.print();
+    println!("{m3}");
 
     // let mut m: Matrix = Matrix::new(3,3);
     // m.identity();

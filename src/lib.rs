@@ -1,4 +1,4 @@
-use std::fs;
+use std::{fmt::Display, fs};
 
 #[derive(Debug, PartialEq, Clone)]
 pub struct Matrix {
@@ -60,6 +60,16 @@ impl Matrix {
         }
     }
 
+    pub fn copy(&self) -> Self {
+        let mut n_data: Vec<Vec<f64>> = Vec::new();
+
+        self.data.iter().for_each(|row| n_data.push(row.to_vec()));
+
+        Self {
+            rows: self.rows,
+            cols: self.cols,
+            data: n_data,
+        }
     pub fn print(&self) {
         self.data.iter().for_each(|v| println!("{:?}", v));
         println!();
@@ -254,6 +264,16 @@ fn correct(m: &mut Matrix) {
     }
 }
 
+impl Display for Matrix {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        for v in self.data.iter() {
+            writeln!(f, "{:?}", v)?;
+        }
+
+        Ok(())
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -268,5 +288,12 @@ mod tests {
         };
 
         assert!(m == expected);
+    }
+
+    #[test]
+    fn test_display() {
+        let m = Matrix::from_string("1 2 3 ; 4 5 6");
+        
+        assert_eq!("[1.0, 2.0, 3.0]\n[4.0, 5.0, 6.0]\n", m.to_string())
     }
 }
