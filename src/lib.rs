@@ -1,6 +1,6 @@
 use std::{fmt::Display, fs};
 
-#[derive(Debug, PartialEq)]
+#[derive(Debug, PartialEq, Clone)]
 pub struct Matrix {
     pub rows: usize,
     pub cols: usize,
@@ -70,6 +70,9 @@ impl Matrix {
             cols: self.cols,
             data: n_data,
         }
+    pub fn print(&self) {
+        self.data.iter().for_each(|v| println!("{:?}", v));
+        println!();
     }
 
     pub fn identity(&mut self) {
