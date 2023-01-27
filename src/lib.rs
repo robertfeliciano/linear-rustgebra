@@ -1,6 +1,6 @@
 use std::fs;
 
-#[derive(Debug, PartialEq)]
+#[derive(Debug, PartialEq, Clone)]
 pub struct Matrix {
     pub rows: usize,
     pub cols: usize,
@@ -57,18 +57,6 @@ impl Matrix {
             rows: n_r,
             cols: n_c,
             data,
-        }
-    }
-
-    pub fn copy(&self) -> Self {
-        let mut n_data: Vec<Vec<f64>> = Vec::new();
-
-        self.data.iter().for_each(|row| n_data.push(row.to_vec()));
-
-        Self {
-            rows: self.rows,
-            cols: self.cols,
-            data: n_data,
         }
     }
 
@@ -265,7 +253,6 @@ fn correct(m: &mut Matrix) {
         }
     }
 }
-
 
 #[cfg(test)]
 mod tests {
