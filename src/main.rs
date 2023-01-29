@@ -8,6 +8,8 @@ fn main() {
     let m3 = m1.combine(m2, |a, b| (a * b));
     println!("{m3}");
 
+    println!("{}",m3[[5,5]]);
+
     // let mut m: Matrix = Matrix::new(3,3);
     // m.identity();
 

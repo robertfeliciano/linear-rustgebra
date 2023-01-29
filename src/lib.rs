@@ -1,4 +1,6 @@
-use std::{fmt::Display, fs};
+use std::{
+   fs, fmt::Display
+};
 
 #[derive(Debug, PartialEq, Clone)]
 pub struct Matrix {
@@ -6,7 +8,12 @@ pub struct Matrix {
     pub cols: usize,
     pub data: Vec<Vec<f64>>,
 }
-
+impl std::ops::Index<[usize; 2]> for Matrix{
+    type Output = f64;
+    fn index(&self,idx: [usize; 2]) -> &f64 {
+        &self.data[idx[0]][idx[1]]
+    }
+}
 impl Matrix {
     pub fn new(rows: usize, cols: usize) -> Self {
         Self {
@@ -14,6 +21,7 @@ impl Matrix {
             cols,
             data: vec![vec![0.0; cols]; rows],
         }
+        
     }
 
     pub fn from_file(path: &str) -> Self {
@@ -29,7 +37,6 @@ impl Matrix {
 
             matrix.push(row);
         }
-
         Self {
             rows: matrix.len(),
             cols: matrix[0].len(),
@@ -61,17 +68,14 @@ impl Matrix {
     }
 
     pub fn copy(&self) -> Self {
-        let mut n_data: Vec<Vec<f64>> = Vec::new();
-
-        self.data.iter().for_each(|row| n_data.push(row.to_vec()));
-
         Self {
             rows: self.rows,
             cols: self.cols,
-            data: n_data,
+            data: self.data.clone(),
         }
+    }
     pub fn print(&self) {
-        self.data.iter().for_each(|v| println!("{:?}", v));
+        self.data.iter().for_each(|v| println!("{v:?}"));
         println!();
     }
 
@@ -180,10 +184,7 @@ impl Matrix {
 
     pub fn det(&self) -> f64 {
         if self.rows != self.cols {
-            panic!(
-                "Determinant requires matrix to be a square. Input matrix was {:?}.",
-                self
-            );
+            panic!("Determinant requires matrix to be a square. Input matrix was {self:?}.");
         }
         if self.rows == 2 && self.cols == 2 {
             self.data[0][0] * self.data[1][1] - self.data[0][1] * self.data[1][0]
@@ -266,9 +267,8 @@ impl Matrix {
 impl Display for Matrix {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         for v in self.data.iter() {
-            writeln!(f, "{:?}", v)?;
+            writeln!(f, "{v:?}")?;
         }
-
         Ok(())
     }
 }
@@ -292,7 +292,7 @@ mod tests {
     #[test]
     fn test_display() {
         let m = Matrix::from_string("1 2 3 ; 4 5 6");
-        
+
         assert_eq!("[1.0, 2.0, 3.0]\n[4.0, 5.0, 6.0]\n", m.to_string())
     }
 }
