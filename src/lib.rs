@@ -26,30 +26,28 @@ impl Matrix {
             data: vec![0.0; rows * cols],
         }
     }
-    fn from_row(row: &str) -> Vec<f64> {
+    fn parse_row(row: &str) -> Vec<f64> {
         row.split_whitespace()
             .map(|x| x.parse::<f64>().unwrap())
             .collect()
-    }
-    pub fn from_file(path: &str) -> Self {
-        let content = fs::read_to_string(path).unwrap_or_else(|e| panic!("{e}"));
-
-        let matrix: Vec<f64> = content.lines().flat_map(Self::from_row).collect();
-        Self {
-            rows: content.lines().count(),
-            cols: matrix.len() / content.lines().count(),
-            data: matrix,
-        }
-    }
-    pub fn from_string(input: &str) -> Self {
-        let rows: Vec<&str> = input.split(';').collect();
+    }   
+    
+    pub fn from_string_by_sep(input: &str, f: impl Fn(&str) -> Vec<&str>) -> Self {
+        let rows: Vec<&str> = f(input);
         let row_count = rows.len();
-        let matrix: Vec<f64> = rows.iter().flat_map(|v| Self::from_row(v)).collect();
+        let matrix: Vec<f64> = rows.iter().flat_map(|v| Self::parse_row(v)).collect();
         Self {
             rows: row_count,
             cols: matrix.len() / row_count,
             data: matrix,
         }
+    }
+    pub fn from_file(path: &str) -> Self {
+        let content = fs::read_to_string(path).unwrap_or_else(|e| panic!("{e}"));
+        Self::from_string_by_sep(&content, |x| x.lines().collect())        
+    }
+    pub fn from_string(input: &str) -> Self {
+        Self::from_string_by_sep(input, |x| x.split(';').collect())        
     }
 
     pub fn copy(&self) -> Self {
