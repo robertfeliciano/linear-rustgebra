@@ -215,12 +215,12 @@ impl Matrix {
                 break;
             }
         }
-        self.print();
+        
         let (slice, slice2) = self.data.split_at_mut(row * self.rows + self.cols);
         let slice = &mut slice[row * self.rows..];
         let slice2 = &mut slice2[n_r * (self.rows - row)..n_r * (self.rows - row) + self.cols];
         slice.swap_with_slice(slice2);
-        self.print();
+        
     }
 
     fn correct(&mut self) {
