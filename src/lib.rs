@@ -8,14 +8,15 @@ pub struct Matrix {
 }
 impl std::ops::Index<[usize; 2]> for Matrix {
     type Output = f64;
-    fn index(&self, idx: [usize; 2]) -> &f64 {       
+    fn index(&self, idx: [usize; 2]) -> &f64 {
         &self.data[idx[0] * self.cols + idx[1]]
     }
 }
-impl std::ops::IndexMut<[usize; 2]> for Matrix {    
+impl std::ops::IndexMut<[usize; 2]> for Matrix {
     fn index_mut(&mut self, idx: [usize; 2]) -> &mut f64 {
         &mut self.data[idx[0] * self.cols + idx[1]]
-    }}
+    }
+}
 
 impl Matrix {
     pub fn new(rows: usize, cols: usize) -> Self {
@@ -32,7 +33,7 @@ impl Matrix {
     }
     pub fn from_file(path: &str) -> Self {
         let content = fs::read_to_string(path).unwrap_or_else(|e| panic!("{e}"));
-        
+
         let matrix: Vec<f64> = content.lines().flat_map(Self::from_row).collect();
         Self {
             rows: content.lines().count(),
@@ -40,8 +41,8 @@ impl Matrix {
             data: matrix,
         }
     }
-    pub fn from_string(input: &str) -> Self {        
-        let rows : Vec<&str> = input.split(';').collect();        
+    pub fn from_string(input: &str) -> Self {
+        let rows: Vec<&str> = input.split(';').collect();
         let row_count = rows.len();
         let matrix: Vec<f64> = rows.iter().flat_map(|v| Self::from_row(v)).collect();
         Self {
@@ -59,15 +60,14 @@ impl Matrix {
         }
     }
     pub fn print(&self) {
-        self.data.chunks(self.cols).for_each(|x| println!("{x:?}"));       
-       
+        self.data.chunks(self.cols).for_each(|x| println!("{x:?}"));
     }
 
     pub fn identity(&mut self) {
         if self.rows != self.cols {
             panic!("Not a square matrix.");
         }
-        for r in 0..self.rows-1 {            
+        for r in 0..self.rows {
             self[[r, r]] = 1.0;
         }
     }
@@ -115,26 +115,25 @@ impl Matrix {
     pub fn rref(&mut self) {
         if self[[0, 0]] == 0.0 {
             self.swap_rows(0);
-        }       
+        }
         let mut lead: usize = 0;
         while lead < self.rows {
             for current_row in 0..self.rows {
                 let div = self[[lead, lead]];
                 let mult = self[[current_row, lead]] / div;
-                for c in 0..self.cols {                   
+                for c in 0..self.cols {
                     if current_row == lead {
-                        self[[lead,c]] /= div;
+                        self[[lead, c]] /= div;
                     } else {
-                        self[[current_row,c]] -= self[[lead,c]] * mult;
+                        self[[current_row, c]] -= self[[lead, c]] * mult;
                     }
-                }                
+                }
             }
             lead += 1;
-        }        
+        }
         self.correct();
     }
 
-  
     pub fn cofactor(&self, expanded_row: usize, j: usize) -> f64 {
         let mut cut: Vec<Vec<f64>> = Vec::new();
         for r in 0..self.rows {
@@ -146,14 +145,13 @@ impl Matrix {
                 if c == j {
                     continue;
                 }
-                v.push(self[[r,c]]);
+                v.push(self[[r, c]]);
             }
             cut.push(v);
         }
         let n_r = cut.len();
         let n_c = cut[0].len();
 
-        
         let minor = Self {
             rows: n_r,
             cols: n_c,
@@ -169,13 +167,13 @@ impl Matrix {
             panic!("Determinant requires matrix to be a square. Input matrix was {self:?}.");
         }
         if self.rows == 2 && self.cols == 2 {
-            self[[0,0]] * self[[1,1]] - self[[0,1]] * self[[1,0]]
+            self[[0, 0]] * self[[1, 1]] - self[[0, 1]] * self[[1, 0]]
         } else {
             let row: usize = 1;
             let mut det = 0.0;
 
             for j in 0..self.cols {
-                det += self.cofactor(row, j) * self[[row,j]];
+                det += self.cofactor(row, j) * self[[row, j]];
             }
             det
         }
@@ -185,7 +183,7 @@ impl Matrix {
         let mut t = Self::new(self.cols, self.rows);
         for i in 0..self.rows {
             for j in 0..self.cols {
-                t[[j,i]] = self[[i,j]];
+                t[[j, i]] = self[[i, j]];
             }
         }
         t
@@ -201,7 +199,7 @@ impl Matrix {
 
         for row in 0..self.rows {
             for col in 0..self.cols {
-                inv[[row,col]] = self.cofactor(row, col);
+                inv[[row, col]] = self.cofactor(row, col);
             }
         }
 
@@ -214,36 +212,35 @@ impl Matrix {
     fn swap_rows(&mut self, row: usize) {
         let mut n_r = 0;
         for r in 0..self.rows {
-            if self[[r,0]] > 0.0 {
+            if self[[r, 0]] > 0.0 {
                 n_r = r;
                 break;
             }
-        }      
+        }
         self.print();
-        let (slice, slice2) = self.data.split_at_mut(row*self.rows + self.cols);        
-        let slice = &mut slice[row*self.rows ..];     
-        let slice2 = &mut slice2[n_r*(self.rows-row) .. n_r*(self.rows-row) + self.cols];        
+        let (slice, slice2) = self.data.split_at_mut(row * self.rows + self.cols);
+        let slice = &mut slice[row * self.rows..];
+        let slice2 = &mut slice2[n_r * (self.rows - row)..n_r * (self.rows - row) + self.cols];
         slice.swap_with_slice(slice2);
         self.print();
-        
     }
 
     fn correct(&mut self) {
         for row in 0..self.rows {
             for col in 0..self.cols {
-                let elem = self[[row,col]];
+                let elem = self[[row, col]];
                 if elem == -0.0 {
-                    self[[row,col]] = 0.0;
+                    self[[row, col]] = 0.0;
                 }
                 let floored = elem.floor();
                 if elem - floored > 0.9999999 {
-                    self[[row,col]] = elem.round();
+                    self[[row, col]] = elem.round();
                 }
                 if elem > 0.0 && elem < 0.000001 {
-                    self[[row,col]] = 0.0;
+                    self[[row, col]] = 0.0;
                 }
                 if elem < 0.0 && elem > -0.00001 {
-                    self[[row,col]] = 0.0;
+                    self[[row, col]] = 0.0;
                 }
             }
         }

@@ -7,16 +7,14 @@ fn main() {
     // println!("{m2}");
     // let m3 = m1.combine(m2, |a, b| (a * b));
     // println!("{m3:?}");
-    
+
     // for x in 0..m3.cols {
     //     println!("{}",m3[[x,1]]);
     // }
-    
 
-    //  let mut m: Matrix = Matrix::new(3,3);
-    //  m.identity();
-     //println!("{:#?}",m);
-     
+    // let mut m: Matrix = Matrix::new(3, 3);
+    // m.identity();
+    // println!("{:#?}", m);
 
     // let mut mcpy = m.copy();
     // mcpy.apply(|x| x+3.0);
