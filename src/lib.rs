@@ -4,7 +4,18 @@ use std::{fmt::Display, fs};
 pub struct Matrix {
     pub rows: usize,
     pub cols: usize,
-    pub data: Vec<Vec<f64>>,
+    pub data: Vec<f64>,
+}
+impl std::ops::Index<[usize; 2]> for Matrix {
+    type Output = f64;
+    fn index(&self, idx: [usize; 2]) -> &f64 {
+        &self.data[idx[0] * self.cols + idx[1]]
+    }
+}
+impl std::ops::IndexMut<[usize; 2]> for Matrix {
+    fn index_mut(&mut self, idx: [usize; 2]) -> &mut f64 {
+        &mut self.data[idx[0] * self.cols + idx[1]]
+    }
 }
 
 impl Matrix {
@@ -12,67 +23,42 @@ impl Matrix {
         Self {
             rows,
             cols,
-            data: vec![vec![0.0; cols]; rows],
+            data: vec![0.0; rows * cols],
         }
     }
-
-    pub fn from_file(path: &str) -> Self {
-        let content = fs::read_to_string(path).unwrap_or_else(|e| panic!("{e}"));
-        let mut matrix: Vec<Vec<f64>> = Vec::new();
-        for rows in content.lines() {
-            let mut row: Vec<f64> = Vec::new();
-            let entries: Vec<&str> = rows.split_whitespace().collect();
-
-            entries
-                .iter()
-                .for_each(|ent| row.push(ent.parse::<f64>().unwrap()));
-
-            matrix.push(row);
-        }
-
+    fn parse_row(row: &str) -> Vec<f64> {
+        row.split_whitespace()
+            .map(|x| x.parse::<f64>().unwrap())
+            .collect()
+    }   
+    
+    pub fn from_string_by_sep(input: &str, f: impl Fn(&str) -> Vec<&str>) -> Self {
+        let rows: Vec<&str> = f(input);
+        let row_count = rows.len();
+        let matrix: Vec<f64> = rows.iter().flat_map(|v| Self::parse_row(v)).collect();
         Self {
-            rows: matrix.len(),
-            cols: matrix[0].len(),
+            rows: row_count,
+            cols: matrix.len() / row_count,
             data: matrix,
         }
     }
-
+    pub fn from_file(path: &str) -> Self {
+        let content = fs::read_to_string(path).unwrap_or_else(|e| panic!("{e}"));
+        Self::from_string_by_sep(&content, |x| x.lines().collect())        
+    }
     pub fn from_string(input: &str) -> Self {
-        let mut data: Vec<Vec<f64>> = Vec::new();
-        let rows: Vec<&str> = input.split(';').collect();
-        for row in rows {
-            let entries: Vec<&str> = row.split_whitespace().collect();
-            let mut tmp_row: Vec<f64> = Vec::new();
-
-            entries
-                .iter()
-                .for_each(|ent| tmp_row.push(ent.parse::<f64>().unwrap()));
-
-            data.push(tmp_row);
-        }
-
-        let n_r = data.len();
-        let n_c = data[0].len();
-        Self {
-            rows: n_r,
-            cols: n_c,
-            data,
-        }
+        Self::from_string_by_sep(input, |x| x.split(';').collect())        
     }
 
     pub fn copy(&self) -> Self {
-        let mut n_data: Vec<Vec<f64>> = Vec::new();
-
-        self.data.iter().for_each(|row| n_data.push(row.to_vec()));
-
         Self {
             rows: self.rows,
             cols: self.cols,
-            data: n_data,
+            data: self.data.clone(),
         }
+    }
     pub fn print(&self) {
-        self.data.iter().for_each(|v| println!("{:?}", v));
-        println!();
+        self.data.chunks(self.cols).for_each(|x| println!("{x:?}"));
     }
 
     pub fn identity(&mut self) {
@@ -80,31 +66,29 @@ impl Matrix {
             panic!("Not a square matrix.");
         }
         for r in 0..self.rows {
-            self.data[r][r] = 1.0;
+            self[[r, r]] = 1.0;
         }
     }
 
     pub fn apply(&mut self, f: impl Fn(f64) -> f64) {
-        self.data = self
-            .data
-            .iter()
-            .map(|v| v.iter().map(|x| f(*x)).collect())
-            .collect();
+        self.data = self.data.iter().map(|v| f(*v)).collect()
     }
 
     pub fn combine(&self, b: Self, f: impl Fn(f64, f64) -> f64) -> Self {
         if self.rows != b.rows || self.cols != b.cols {
             panic!("Matrices must be of the same size");
         }
-        let mut new_matrix = Self::new(self.rows, self.cols);
-        for r in 0..self.rows {
-            new_matrix.data[r] = self.data[r]
-                .iter()
-                .zip(b.data[r].iter())
-                .map(|(a, b)| f(*a, *b))
-                .collect();
+        let data = self
+            .data
+            .iter()
+            .zip(b.data.iter())
+            .map(|(a, b)| f(*a, *b))
+            .collect();
+        Matrix {
+            rows: self.rows,
+            cols: self.cols,
+            data,
         }
-        new_matrix
     }
 
     pub fn dot(&self, b: Self) -> Self {
@@ -119,30 +103,27 @@ impl Matrix {
             for j in 0..b.cols {
                 let mut sum = 0.0;
                 for k in 0..b.rows {
-                    sum += self.data[i][k] * b.data[k][j];
+                    sum += self[[i, k]] * b[[i, k]];
                 }
-                dp.data[i][j] = sum;
+                dp[[i, j]] = sum;
             }
         }
         dp
     }
-
     pub fn rref(&mut self) {
-        if self.data[0][0] == 0.0 {
+        if self[[0, 0]] == 0.0 {
             self.swap_rows(0);
         }
         let mut lead: usize = 0;
-        let rows = self.rows;
-        while lead < rows {
-            for r in 0..rows {
-                let div = self.data[lead][lead];
-                let mult = self.data[r][lead] / div;
-
-                if r == lead {
-                    self.data[lead] = self.data[lead].iter().map(|entry| entry / div).collect();
-                } else {
-                    for c in 0..self.cols {
-                        self.data[r][c] -= self.data[lead][c] * mult;
+        while lead < self.rows {
+            for current_row in 0..self.rows {
+                let div = self[[lead, lead]];
+                let mult = self[[current_row, lead]] / div;
+                for c in 0..self.cols {
+                    if current_row == lead {
+                        self[[lead, c]] /= div;
+                    } else {
+                        self[[current_row, c]] -= self[[lead, c]] * mult;
                     }
                 }
             }
@@ -162,16 +143,17 @@ impl Matrix {
                 if c == j {
                     continue;
                 }
-                v.push(self.data[r][c]);
+                v.push(self[[r, c]]);
             }
             cut.push(v);
         }
         let n_r = cut.len();
         let n_c = cut[0].len();
+
         let minor = Self {
             rows: n_r,
             cols: n_c,
-            data: cut,
+            data: cut.into_iter().flatten().collect(),
         }
         .det();
         let base: i32 = -1;
@@ -180,19 +162,16 @@ impl Matrix {
 
     pub fn det(&self) -> f64 {
         if self.rows != self.cols {
-            panic!(
-                "Determinant requires matrix to be a square. Input matrix was {:?}.",
-                self
-            );
+            panic!("Determinant requires matrix to be a square. Input matrix was {self:?}.");
         }
         if self.rows == 2 && self.cols == 2 {
-            self.data[0][0] * self.data[1][1] - self.data[0][1] * self.data[1][0]
+            self[[0, 0]] * self[[1, 1]] - self[[0, 1]] * self[[1, 0]]
         } else {
             let row: usize = 1;
             let mut det = 0.0;
 
-            for j in 0..self.data[row].len() {
-                det += self.cofactor(row, j) * self.data[row][j];
+            for j in 0..self.cols {
+                det += self.cofactor(row, j) * self[[row, j]];
             }
             det
         }
@@ -202,7 +181,7 @@ impl Matrix {
         let mut t = Self::new(self.cols, self.rows);
         for i in 0..self.rows {
             for j in 0..self.cols {
-                t.data[j][i] = self.data[i][j];
+                t[[j, i]] = self[[i, j]];
             }
         }
         t
@@ -218,7 +197,7 @@ impl Matrix {
 
         for row in 0..self.rows {
             for col in 0..self.cols {
-                inv.data[row][col] = self.cofactor(row, col);
+                inv[[row, col]] = self.cofactor(row, col);
             }
         }
 
@@ -231,32 +210,35 @@ impl Matrix {
     fn swap_rows(&mut self, row: usize) {
         let mut n_r = 0;
         for r in 0..self.rows {
-            if self.data[r][0] > 0.0 {
+            if self[[r, 0]] > 0.0 {
                 n_r = r;
                 break;
             }
         }
-        let temp: Vec<f64> = self.data[row].clone();
-        self.data[row] = self.data[n_r].clone();
-        self.data[n_r] = temp;
+        
+        let (slice, slice2) = self.data.split_at_mut(row * self.rows + self.cols);
+        let slice = &mut slice[row * self.rows..];
+        let slice2 = &mut slice2[n_r * (self.rows - row)..n_r * (self.rows - row) + self.cols];
+        slice.swap_with_slice(slice2);
+        
     }
 
     fn correct(&mut self) {
         for row in 0..self.rows {
             for col in 0..self.cols {
-                let elem = self.data[row][col];
+                let elem = self[[row, col]];
                 if elem == -0.0 {
-                    self.data[row][col] = 0.0;
+                    self[[row, col]] = 0.0;
                 }
                 let floored = elem.floor();
                 if elem - floored > 0.9999999 {
-                    self.data[row][col] = elem.round();
+                    self[[row, col]] = elem.round();
                 }
                 if elem > 0.0 && elem < 0.000001 {
-                    self.data[row][col] = 0.0;
+                    self[[row, col]] = 0.0;
                 }
                 if elem < 0.0 && elem > -0.00001 {
-                    self.data[row][col] = 0.0;
+                    self[[row, col]] = 0.0;
                 }
             }
         }
@@ -266,9 +248,8 @@ impl Matrix {
 impl Display for Matrix {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         for v in self.data.iter() {
-            writeln!(f, "{:?}", v)?;
+            writeln!(f, "{v:?}")?;
         }
-
         Ok(())
     }
 }
@@ -283,7 +264,7 @@ mod tests {
         let expected = Matrix {
             rows: 2,
             cols: 3,
-            data: vec![vec![1.0, 2.0, 3.0], vec![4.0, 5.0, 6.0]],
+            data: vec![1.0, 2.0, 3.0, 4.0, 5.0, 6.0],
         };
 
         assert!(m == expected);
@@ -292,7 +273,7 @@ mod tests {
     #[test]
     fn test_display() {
         let m = Matrix::from_string("1 2 3 ; 4 5 6");
-        
+
         assert_eq!("[1.0, 2.0, 3.0]\n[4.0, 5.0, 6.0]\n", m.to_string())
     }
 }
