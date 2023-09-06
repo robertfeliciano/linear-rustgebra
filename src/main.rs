@@ -52,9 +52,11 @@ fn main() {
     // m5i.print();
 
     // // let mut m6 = Matrix::from_string("0 1 2 ; 0 3 1 ; 5 2 2");
-    let mut m6 = Matrix::from_string("5 -6 -7 7 ;
+    let mut m6 = Matrix::from_string(
+        "5 -6 -7 7 ;
                                                     3 -2 5 -17 ;
-                                                    2 4 -3 29");
+                                                    2 4 -3 29",
+    );
     m6.print();
     println!("Row Reduce Echelon Form calculation:");
     m6.rref();
@@ -66,4 +68,8 @@ fn main() {
     println!("Row Reduce Echelon Form calculation:");
     m7.rref();
     m7.print();
+
+    let m1 = Matrix::from_string("1 2 3; 4 5 6; 7 8 9");
+    let m2 = Matrix::from_string("1; 2; 3");
+    m1.dot(m2).print();
 }

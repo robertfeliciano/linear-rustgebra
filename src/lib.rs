@@ -36,7 +36,7 @@ impl Matrix {
                 .iter()
                 .map(|ent| ent.parse::<f64>().unwrap())
                 .collect();
-            
+
             for item in temp {
                 data.push(item);
             }
@@ -68,7 +68,7 @@ impl Matrix {
                 .iter()
                 .map(|ent| ent.parse::<f64>().unwrap())
                 .collect();
-            
+
             for item in temp {
                 data.push(item);
             }
@@ -97,7 +97,11 @@ impl Matrix {
         for r in 0..self.rows {
             print!("[");
             for c in 0..self.cols {
-                if c == self.cols - 1 { print!("{:.3}", self[r][c]); } else { print!("{:.3} ", self[r][c]); }
+                if c == self.cols - 1 {
+                    print!("{:.3}", self[r][c]);
+                } else {
+                    print!("{:.3} ", self[r][c]);
+                }
             }
             println!("]");
         }
@@ -121,7 +125,8 @@ impl Matrix {
             panic!("Matrices must be of the same size.");
         }
         let mut new_matrix = Self::new(self.rows, self.cols);
-        new_matrix.data = self.data
+        new_matrix.data = self
+            .data
             .iter()
             .zip(b.data.iter())
             .map(|(a, b)| f(*a, *b))
@@ -130,7 +135,7 @@ impl Matrix {
     }
 
     pub fn dot(&self, b: Self) -> Self {
-        if self.rows != b.cols || self.cols != b.rows {
+        if self.cols != b.rows {
             panic!(
                 "Dimensions not matched. M1 is {} by {}, M2 is {} by {}.",
                 self.rows, self.cols, b.rows, b.cols
@@ -162,9 +167,7 @@ impl Matrix {
 
                 if r == lead {
                     // self[lead] = self[lead].iter().map(|entry| entry / div).collect::<Vec<_>>();
-                    self[lead]
-                        .iter_mut()
-                        .for_each(|elem| *elem = (*elem) / div);
+                    self[lead].iter_mut().for_each(|elem| *elem = (*elem) / div);
                 } else {
                     for c in 0..self.cols {
                         self[r][c] -= self[lead][c] * mult;
@@ -310,8 +313,11 @@ impl Display for Matrix {
         for r in 0..self.rows {
             write!(f, "[")?;
             for c in 0..self.cols {
-                if c == self.cols - 1 { write!(f, "{:.3}", self[r][c])?; } else { write!(f, "{:.3} ", self[r][c])?; }
-                
+                if c == self.cols - 1 {
+                    write!(f, "{:.3}", self[r][c])?;
+                } else {
+                    write!(f, "{:.3} ", self[r][c])?;
+                }
             }
             writeln!(f, "]")?;
         }
